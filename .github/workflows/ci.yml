@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # Figures out which services actually changed so an edit to one service
+  # doesn't lint/test/build all six — see architecture discussion on
+  # per-service independence.
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.filter.outputs.changes }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            api-gateway: 'services/api-gateway/**'
+            auth-service: 'services/auth-service/**'
+            interview-service: 'services/interview-service/**'
+            audio-service: 'services/audio-service/**'
+            conversation-service: 'services/conversation-service/**'
+            report-service: 'services/report-service/**'
+            frontend: 'frontend/**'
+
+  backend:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.services != '[]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJSON(needs.detect-changes.outputs.services) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - name: Install dependencies
+        working-directory: services/${{ matrix.service }}
+        run: uv sync --locked
+      - name: Lint
+        working-directory: services/${{ matrix.service }}
+        run: uv run ruff check .
+      - name: Test
+        working-directory: services/${{ matrix.service }}
+        run: uv run pytest -q
+
+  frontend:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.frontend == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - working-directory: frontend
+        run: npm ci
+      - working-directory: frontend
+        run: npm run lint
+      - working-directory: frontend
+        run: npm run build

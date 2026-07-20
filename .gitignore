@@ -1,1 +1,27 @@
 *.env
+.env.secrets
+personal-docs/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Object storage / db data volumes if ever run bind-mounted locally
+infra/postgres/data/
+infra/minio/data/
+
+# uv.lock / package-lock.json are intentionally NOT ignored — they're
+# committed so every install is reproducible.

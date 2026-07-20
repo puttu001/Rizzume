@@ -1,0 +1,13 @@
+# Repo-wide lint/format rules only — dev tooling, not runtime code, so this
+# doesn't couple the independently-deployed services together (see
+# architecture discussion on shared packages vs. shared lint config).
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
