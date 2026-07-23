@@ -1,2 +1,4 @@
-# Intentionally empty for now — domain constants (password policy, token
-# claim names, etc.) belong here once the auth business logic is built.
+PASSWORD_MIN_LENGTH = 8
+# bcrypt silently ignores/rejects input past 72 bytes — capping here so the
+# error is a clean 422 at the API boundary instead of a 500 from bcrypt.
+PASSWORD_MAX_LENGTH = 72

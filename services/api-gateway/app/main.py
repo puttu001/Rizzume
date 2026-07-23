@@ -21,6 +21,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title=settings.service_name, lifespan=lifespan)
 
+# Order matters: Starlette makes the LAST-added middleware outermost, so
+# CORS must be added after JWT — otherwise JWT's early 401 responses never
+# pass through CORS and browsers show a CORS error instead of the real 401.
+app.add_middleware(JWTAuthMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_allowed_origins,
@@ -28,11 +32,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.add_middleware(JWTAuthMiddleware)
-
-app.include_router(api_router)
 
 
+# Registered before include_router deliberately — see the comment on this
+# same pattern in auth-service/app/main.py. Not actually at risk here since
+# every gateway route is prefixed (/api/v1/...), but keeping the ordering
+# consistent across all six services beats relying on "this one's fine."
 @app.get("/health")
 def health_check() -> dict[str, str]:
     return {"status": "ok", "service": settings.service_name}
+
+
+app.include_router(api_router)

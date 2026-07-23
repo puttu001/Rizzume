@@ -25,3 +25,5 @@ infra/minio/data/
 
 # uv.lock / package-lock.json are intentionally NOT ignored — they're
 # committed so every install is reproducible.
+
+current_state.md

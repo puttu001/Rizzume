@@ -1,6 +1,8 @@
 from fastapi import APIRouter
 
-# Endpoint modules register themselves here as they're built, e.g.:
-#   from app.api import signup, login
-#   api_router.include_router(signup.router)
+from app.api import auth
+
+# No prefix here — api-gateway forwards /api/v1/auth/{path} to this
+# service's /{path} directly (see api-gateway/app/api/endpoints/auth.py).
 api_router = APIRouter()
+api_router.include_router(auth.router)

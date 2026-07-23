@@ -11,8 +11,8 @@ from app.core.config import get_settings
 from app.db.base import Base
 
 # Import every model module here so Base.metadata knows about its tables
-# before alembic compares them for autogenerate, e.g.:
-#   from app.models import user  # noqa: F401
+# before alembic compares them for autogenerate.
+from app.models import user  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

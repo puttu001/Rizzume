@@ -13,11 +13,10 @@ class Settings(BaseSettings):
     # postgresql+asyncpg://user:password@host:port/interview_db — this service's own database.
     database_url: str
 
-    # Where to reach conversation-service for state/transcript writes, once that
-    # integration is built.
+    # Where to reach conversation-service for state/transcript writes.
     conversation_service_url: str = "http://conversation-service:8000"
 
-    openai_api_key: str = ""
+    openai_api_key: str
 
 
 @lru_cache
