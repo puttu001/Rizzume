@@ -3,10 +3,11 @@ import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.clients import conversation_client
-from app.core.constants import MAX_QUESTIONS
-from app.engine import feedback_generator, interview_engine, question_generator
+from app.engine import feedback_generator, interview_engine, interview_planner
 from app.models.interview import Interview
 from app.repositories import interview_repository
+from app.storage import blob_client
+from app.utils.pdf_extractor import extract_text
 
 
 class InterviewNotFoundError(Exception):
@@ -33,19 +34,35 @@ async def _get_owned_interview(
 
 
 async def start_interview(
-    db: AsyncSession, *, user_id: uuid.UUID, role_title: str
+    db: AsyncSession, *, user_id: uuid.UUID, role_title: str, resume_bytes: bytes
 ) -> tuple[Interview, str, str]:
-    interview = await interview_repository.create(db, user_id=user_id, role_title=role_title)
-    opening = question_generator.generate_opening_question(role_title)
+    resume_text = extract_text(resume_bytes)
+
+    resume_blob_name = f"{uuid.uuid4()}.pdf"
+    blob_client.upload_resume(resume_blob_name, resume_bytes)
+
+    # The "5-6 second processing" step — one combined LLM call decides the
+    # question count (resume+role informed) and generates the opening
+    # question, rather than two stacked round trips.
+    plan = interview_planner.plan_interview(role_title=role_title, resume_text=resume_text)
+
+    interview = await interview_repository.create(
+        db,
+        user_id=user_id,
+        role_title=role_title,
+        max_questions=plan.question_count,
+        resume_text=resume_text,
+        resume_blob_name=resume_blob_name,
+    )
     # Only the clean question text goes to conversation-service — the
     # remark is display/speech only, never part of the stored transcript
     # (which report-service and the engine's own follow-up context read
     # back later; small talk in there is noise, not signal).
-    await conversation_client.add_turn(interview.id, role="question", content=opening.question)
+    await conversation_client.add_turn(interview.id, role="question", content=plan.question)
     interview = await interview_repository.advance(
         db, interview, new_difficulty=interview.current_difficulty
     )
-    return interview, opening.remark, opening.question
+    return interview, plan.remark, plan.question
 
 
 async def get_interview(db: AsyncSession, *, interview_id: uuid.UUID, user_id: uuid.UUID) -> Interview:
@@ -66,15 +83,18 @@ async def submit_answer(
 
     decision = interview_engine.decide_next_step(
         role_title=interview.role_title,
+        resume_text=interview.resume_text,
         transcript=transcript,
         current_difficulty=interview.current_difficulty,
         question_count=interview.question_count,
-        max_questions=MAX_QUESTIONS,
+        max_questions=interview.max_questions,
     )
 
     # Enforced here too, not just via the prompt — don't rely on the model
-    # reliably stopping itself at the limit.
-    if decision.action == "end_interview" or interview.question_count >= MAX_QUESTIONS:
+    # reliably stopping itself at the limit. max_questions is this
+    # interview's own planned count (see start_interview), not a global
+    # constant.
+    if decision.action == "end_interview" or interview.question_count >= interview.max_questions:
         feedback = feedback_generator.generate_feedback(
             role_title=interview.role_title, transcript=transcript
         )

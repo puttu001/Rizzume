@@ -10,8 +10,22 @@ async def get_by_id(db: AsyncSession, interview_id: uuid.UUID) -> Interview | No
     return await db.get(Interview, interview_id)
 
 
-async def create(db: AsyncSession, *, user_id: uuid.UUID, role_title: str) -> Interview:
-    interview = Interview(user_id=user_id, role_title=role_title)
+async def create(
+    db: AsyncSession,
+    *,
+    user_id: uuid.UUID,
+    role_title: str,
+    max_questions: int,
+    resume_text: str,
+    resume_blob_name: str,
+) -> Interview:
+    interview = Interview(
+        user_id=user_id,
+        role_title=role_title,
+        max_questions=max_questions,
+        resume_text=resume_text,
+        resume_blob_name=resume_blob_name,
+    )
     db.add(interview)
     await db.flush()
     await db.refresh(interview)

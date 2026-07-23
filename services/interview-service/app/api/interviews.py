@@ -1,18 +1,13 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user_id
 from app.db.session import get_db
-from app.schemas.interview import (
-    AnswerResponse,
-    AnswerSubmit,
-    InterviewCreate,
-    InterviewOut,
-    InterviewStartResponse,
-)
+from app.schemas.interview import AnswerResponse, AnswerSubmit, InterviewOut, InterviewStartResponse
 from app.services import interview_service
+from app.utils.pdf_extractor import EmptyResumeError
 
 # No "/interviews" prefix here — api-gateway already strips "/api/v1/interviews"
 # and forwards the remainder verbatim (see api-gateway/app/api/endpoints/interview.py),
@@ -22,13 +17,27 @@ router = APIRouter(tags=["interviews"])
 
 @router.post("/", response_model=InterviewStartResponse, status_code=status.HTTP_201_CREATED)
 async def start_interview(
-    payload: InterviewCreate,
+    role_title: str = Form(...),
+    resume: UploadFile = File(...),
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> InterviewStartResponse:
-    interview, remark, question = await interview_service.start_interview(
-        db, user_id=user_id, role_title=payload.role_title
-    )
+    if resume.content_type != "application/pdf":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Resume must be a PDF"
+        )
+
+    resume_bytes = await resume.read()
+    if not resume_bytes:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty resume file")
+
+    try:
+        interview, remark, question = await interview_service.start_interview(
+            db, user_id=user_id, role_title=role_title, resume_bytes=resume_bytes
+        )
+    except EmptyResumeError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
     return InterviewStartResponse(
         interview=InterviewOut.model_validate(interview), remark=remark, question=question
     )

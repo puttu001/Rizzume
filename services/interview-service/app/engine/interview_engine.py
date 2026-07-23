@@ -29,6 +29,7 @@ class NextStepDecision(BaseModel):
 def decide_next_step(
     *,
     role_title: str,
+    resume_text: str,
     transcript: list[TranscriptTurn],
     current_difficulty: str,
     question_count: int,
@@ -39,22 +40,28 @@ def decide_next_step(
     single call with structured output is faster, cheaper, and more
     coherent than asking the model to reason about difficulty separately
     from question content, which risks the two answers disagreeing with
-    each other. See current_state.md for this deviation from the diagram."""
+    each other. See current_state.md for this deviation from the diagram.
+
+    max_questions is per-interview (decided once at start by
+    interview_planner.plan_interview from the resume+role), not a single
+    global constant — see core/constants.py for the bounds it's clamped to."""
     client = get_openai_client()
     response = client.responses.parse(
         model=MODEL,
         instructions=(
-            f"You are conducting a technical interview for a {role_title} position. "
-            f"{question_count} question(s) asked so far, out of a maximum of {max_questions}. "
-            f"Current difficulty: {current_difficulty}. "
+            f"You are conducting a technical interview for a {role_title} position. You have "
+            f"the candidate's resume for context. {question_count} question(s) asked so far, "
+            f"out of a planned {max_questions}. Current difficulty: {current_difficulty}. "
             "Given the conversation so far, decide whether to ask a follow-up or a new "
             "question — raise difficulty if the candidate is doing well, lower it if they're "
-            "struggling — or end the interview if the maximum question count has been reached "
-            "or the conversation has reached a natural conclusion. Also write a short, "
-            "natural spoken remark to go before the question — a brief, genuine "
+            "struggling — or end the interview if the planned question count has been reached "
+            "or the conversation has reached a natural conclusion. Prefer questions that "
+            "connect to specific things in the resume when it makes sense to. Also write a "
+            "short, natural spoken remark to go before the question — a brief, genuine "
             "acknowledgment of their previous answer or a transition into the next topic, "
             "the way a real interviewer would talk between questions. Keep it to one "
-            "sentence and don't restate or preview the question itself."
+            "sentence and don't restate or preview the question itself.\n\n"
+            f"Resume:\n{resume_text}"
         ),
         input=format_transcript(transcript),
         text_format=NextStepDecision,

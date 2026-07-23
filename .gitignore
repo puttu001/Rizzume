@@ -1,6 +1,8 @@
 *.env
 .env.secrets
 personal-docs/
+.claude/
+
 
 # Python
 __pycache__/

@@ -18,6 +18,11 @@ class Settings(BaseSettings):
 
     openai_api_key: str
 
+    # Azure Blob Storage for uploaded resumes — same account as audio-service,
+    # different container. Not S3-compatible, uses the azure-storage-blob SDK.
+    azure_connection_string: str
+    azure_resume_container_name: str = "rizzume-resumes"
+
 
 @lru_cache
 def get_settings() -> Settings:

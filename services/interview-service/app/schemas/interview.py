@@ -4,9 +4,9 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-
-class InterviewCreate(BaseModel):
-    role_title: str
+# No InterviewCreate model — POST / is multipart (resume file + role_title
+# form field), not a JSON body, so FastAPI takes those as separate
+# File()/Form() parameters directly on the endpoint instead.
 
 
 class AnswerSubmit(BaseModel):
@@ -20,6 +20,7 @@ class InterviewOut(BaseModel):
     status: Literal["in_progress", "completed"]
     current_difficulty: Literal["easy", "medium", "hard"]
     question_count: int
+    max_questions: int
     feedback: dict | None
     created_at: datetime
     completed_at: datetime | None
