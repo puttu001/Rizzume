@@ -18,6 +18,7 @@ from sqlalchemy import text
 from app.db.session import engine
 from app.engine.feedback_generator import InterviewFeedback
 from app.engine.interview_engine import NextStepDecision
+from app.engine.question_generator import OpeningQuestion
 from app.main import app
 
 
@@ -60,7 +61,9 @@ def mock_engine(monkeypatch):
     """Same reasoning as mock_conversation_client — the real OpenAI calls
     were verified manually (see current_state.md); mocked here for a fast,
     free, deterministic suite."""
-    generate_opening_question = lambda role_title: "Tell me about yourself."  # noqa: E731
+    def generate_opening_question(role_title):
+        return OpeningQuestion(remark="Welcome, thanks for joining today.", question="Tell me about yourself.")
+
     monkeypatch.setattr(
         "app.services.interview_service.question_generator.generate_opening_question",
         generate_opening_question,
@@ -68,7 +71,11 @@ def mock_engine(monkeypatch):
 
     decision_holder = {
         "value": NextStepDecision(
-            action="ask_question", question="Follow-up question?", difficulty="hard", reasoning="test"
+            action="ask_question",
+            remark="Nice, that's a solid approach.",
+            question="Follow-up question?",
+            difficulty="hard",
+            reasoning="test",
         )
     }
 

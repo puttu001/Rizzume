@@ -17,11 +17,24 @@ async def test_start_interview_creates_row_and_returns_opening_question(
     response = await _start(async_client, user_id)
     assert response.status_code == 201
     body = response.json()
+    assert body["remark"] == "Welcome, thanks for joining today."
     assert body["question"] == "Tell me about yourself."
     assert body["interview"]["status"] == "in_progress"
     assert body["interview"]["question_count"] == 1
     assert body["interview"]["user_id"] == str(user_id)
     mock_conversation_client["add_turn"].assert_awaited_once()
+
+
+async def test_remark_is_never_sent_to_conversation_service(
+    async_client, clean_interviews_table, mock_conversation_client, mock_engine, user_id
+) -> None:
+    """The remark is display/speech only — conversation-service (and the
+    engine's own follow-up context, and report-service later) should only
+    ever see the clean question text, never the small talk around it."""
+    await _start(async_client, user_id)
+    stored_content = mock_conversation_client["add_turn"].call_args.kwargs["content"]
+    assert stored_content == "Tell me about yourself."
+    assert "Welcome" not in stored_content
 
 
 async def test_get_interview_requires_ownership(
@@ -69,6 +82,7 @@ async def test_submit_answer_advances_difficulty_and_count(
     )
     assert answer_response.status_code == 200
     body = answer_response.json()
+    assert body["remark"] == "Nice, that's a solid approach."
     assert body["question"] == "Follow-up question?"
     assert body["interview"]["current_difficulty"] == "hard"
     assert body["interview"]["question_count"] == 2
@@ -90,6 +104,7 @@ async def test_submit_answer_ending_interview_generates_feedback(
     )
     assert answer_response.status_code == 200
     body = answer_response.json()
+    assert body["remark"] is None
     assert body["question"] is None
     assert body["feedback"]["overall_score"] == 75
     assert body["interview"]["status"] == "completed"

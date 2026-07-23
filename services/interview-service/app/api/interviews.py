@@ -26,10 +26,12 @@ async def start_interview(
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> InterviewStartResponse:
-    interview, question = await interview_service.start_interview(
+    interview, remark, question = await interview_service.start_interview(
         db, user_id=user_id, role_title=payload.role_title
     )
-    return InterviewStartResponse(interview=InterviewOut.model_validate(interview), question=question)
+    return InterviewStartResponse(
+        interview=InterviewOut.model_validate(interview), remark=remark, question=question
+    )
 
 
 @router.get("/{interview_id:uuid}", response_model=InterviewOut)
@@ -57,7 +59,7 @@ async def submit_answer(
     db: AsyncSession = Depends(get_db),
 ) -> AnswerResponse:
     try:
-        interview, question, feedback = await interview_service.submit_answer(
+        interview, remark, question, feedback = await interview_service.submit_answer(
             db, interview_id=interview_id, user_id=user_id, answer=payload.answer
         )
     except interview_service.InterviewNotFoundError as exc:
@@ -70,5 +72,8 @@ async def submit_answer(
         ) from exc
 
     return AnswerResponse(
-        interview=InterviewOut.model_validate(interview), question=question, feedback=feedback
+        interview=InterviewOut.model_validate(interview),
+        remark=remark,
+        question=question,
+        feedback=feedback,
     )

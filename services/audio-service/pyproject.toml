@@ -9,6 +9,8 @@ dependencies = [
     "pydantic-settings>=2.6",
     "celery[redis]>=5.4",
     "python-multipart>=0.0.17",
+    "openai>=1.50",
+    "azure-storage-blob>=12.23",
 ]
 
 [dependency-groups]

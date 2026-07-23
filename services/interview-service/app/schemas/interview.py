@@ -29,10 +29,12 @@ class InterviewOut(BaseModel):
 
 class InterviewStartResponse(BaseModel):
     interview: InterviewOut
+    remark: str
     question: str
 
 
 class AnswerResponse(BaseModel):
     interview: InterviewOut
+    remark: str | None = None
     question: str | None = None
     feedback: dict | None = None
