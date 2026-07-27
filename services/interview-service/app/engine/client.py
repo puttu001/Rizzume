@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from openai import OpenAI
+from test_openai import OpenAI
 
 from app.core.config import get_settings
 

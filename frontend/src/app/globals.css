@@ -24,3 +24,16 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Interview screen's avatar waveform bars — staggered per-bar via
+   animation-delay (see AvatarPanel.tsx) so it reads as a real audio
+   visualizer instead of everything pulsing in lockstep. */
+@keyframes waveform-bar {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
