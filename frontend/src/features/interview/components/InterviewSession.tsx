@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { pollTranscription, uploadForTranscription } from "@/features/audio/api";
+import { AnswerPanel } from "@/features/interview/components/AnswerPanel";
 import { AvatarPanel } from "@/features/interview/components/AvatarPanel";
 import { CameraPanel } from "@/features/interview/components/CameraPanel";
 import { InterviewTopBar } from "@/features/interview/components/InterviewTopBar";
@@ -120,27 +121,31 @@ export function InterviewSession({
         onEndInterview={handleEndInterview}
       />
 
-      <div className="grid flex-1 gap-6 lg:grid-cols-[320px_1fr_360px]">
+      <div className="grid flex-1 gap-6 lg:grid-cols-[300px_360px_1fr]">
         <QuestionPanel questions={questions} />
 
-        <AvatarPanel
-          isSpeaking={speech.isSpeaking}
-          isRecording={recorder.status === "recording"}
-          questionIndex={questions.length - 1}
-        />
+        <div className="flex flex-col gap-6">
+          <AvatarPanel
+            isSpeaking={speech.isSpeaking}
+            isRecording={recorder.status === "recording"}
+            questionIndex={questions.length - 1}
+          />
 
-        <CameraPanel
-          isRecording={recorder.status === "recording"}
-          stage={stage}
-          transcript={transcript}
-          onTranscriptChange={setTranscript}
-          onStartRecording={() => recorder.start()}
-          onStopRecording={handleStopRecording}
-          onRerecord={handleRerecord}
-          onSubmitAnswer={handleSubmitAnswer}
-          recorderError={recorder.error}
-          error={error}
-        />
+          <AnswerPanel
+            isRecording={recorder.status === "recording"}
+            stage={stage}
+            transcript={transcript}
+            onTranscriptChange={setTranscript}
+            onStartRecording={() => recorder.start()}
+            onStopRecording={handleStopRecording}
+            onRerecord={handleRerecord}
+            onSubmitAnswer={handleSubmitAnswer}
+            recorderError={recorder.error}
+            error={error}
+          />
+        </div>
+
+        <CameraPanel />
       </div>
 
       <p className="flex items-center justify-center gap-1.5 text-center text-xs text-slate-400">

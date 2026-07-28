@@ -41,7 +41,7 @@ export function CameraSelfView({ enabled = true }: { enabled?: boolean }) {
   }, [enabled]);
 
   return (
-    <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-slate-900">
+    <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-slate-900 lg:aspect-auto lg:h-full">
       {error ? (
         <div className="flex h-full items-center justify-center px-4 text-center text-sm text-slate-400">
           {error}

@@ -30,15 +30,31 @@ to avoid collisions).
 ```bash
 cp .env.secrets.example .env.secrets   # fill in real values
 ./scripts/bootstrap-env.sh             # generates every services/*/.env + frontend/.env
-docker compose -f infra/docker-compose.yml --env-file .env.secrets up --build
+docker compose -f infra/docker-compose.yml up --build
 ```
 
+One real command — live-verified (real signup/login round trip against the
+real Neon database through the gateway). Every service loads its own
+`services/<name>/.env`, which already points at the real hosted Neon /
+Upstash / Azure Blob Storage instances (there's no local Postgres/Redis/MinIO
+container in this compose file — see `infra/docker-compose.yml`'s header
+comment for why).
+
 - Frontend: http://localhost:3000
-- API gateway: http://localhost:8000
+- API gateway: http://localhost:18000
 - Individual services (direct, for debugging only — normally reached through
-  the gateway): auth :8001, interview :8002, conversation :8003, audio :8004,
-  report :8005
-- MinIO console: http://localhost:9001
+  the gateway): auth :18001, interview :18002, conversation :18003,
+  audio :18004
+- Host ports are 18000-18004, not 8000-8004: on Windows, Docker Desktop's
+  WSL2 backend can reserve 8000-8004 for its own dynamic NAT range, which
+  makes `docker compose up` fail with a port-bind permission error. Check
+  `netsh interface ipv4 show excludedportrange protocol=tcp` if you hit this
+  after changing these back.
+- `report-service` is not part of this compose file — nothing in the working
+  flow calls it yet, see `current_state.md`.
+- Alternative, no Docker required: `./scripts/run-all.ps1` runs every
+  service directly via `uv run`/`npm run` in separate windows, on the
+  original 8000-8004 ports.
 
 ## Run a single service without Docker
 
