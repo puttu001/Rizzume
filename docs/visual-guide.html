@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10131d">
+  <title>Rizzume | Interactive Architecture Guide</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #10131d;
+      --panel: #171b28;
+      --panel-2: #1d2332;
+      --line: #30394c;
+      --text: #f3f5fb;
+      --muted: #a9b2c5;
+      --accent: #93a9ff;
+      --teal: #62dfc0;
+      --orange: #ffbb75;
+      --pink: #fa8fb2;
+      --shadow: 0 14px 40px #0005;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; background: radial-gradient(ellipse at 10% 0%, #202844 0, transparent 38%), var(--bg);
+      color: var(--text); font: 15px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    a { color: var(--accent); }
+    .shell { max-width: 1500px; margin: 0 auto; padding: 28px clamp(16px, 3vw, 44px) 64px; }
+    .hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin: 12px 0 28px; }
+    .eyebrow { color: var(--teal); font-size: 12px; font-weight: 750; letter-spacing: .16em; text-transform: uppercase; }
+    h1 { font-size: clamp(32px, 5vw, 58px); line-height: 1.04; letter-spacing: -.045em; margin: 8px 0 12px; }
+    h2 { font-size: clamp(22px, 3vw, 30px); letter-spacing: -.025em; margin: 0; }
+    h3 { margin: 0 0 6px; font-size: 16px; }
+    p { margin: 0; }
+    .subtitle { max-width: 780px; color: var(--muted); font-size: 16px; }
+    .tag { white-space: nowrap; border: 1px solid #725636; color: var(--orange); border-radius: 999px; padding: 8px 12px; font-size: 12px; background: #ffbb7510; }
+    .nav { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 7px; padding: 10px; border: 1px solid var(--line); border-radius: 16px; background: #141824ed; backdrop-filter: blur(14px); box-shadow: var(--shadow); }
+    .nav button, .control, .search { border: 1px solid transparent; background: transparent; color: var(--muted); border-radius: 10px; padding: 9px 12px; cursor: pointer; transition: .18s ease; }
+    .nav button:hover, .control:hover { color: var(--text); background: #ffffff0b; }
+    .nav button.active { color: #10131d; background: var(--accent); font-weight: 750; }
+    main { margin-top: 24px; }
+    .view { display: none; animation: rise .3s ease both; }
+    .view.active { display: block; }
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin: 0 0 18px; }
+    .section-head p { color: var(--muted); max-width: 760px; margin-top: 5px; }
+    .grid { display: grid; gap: 14px; }
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .card { background: linear-gradient(145deg, #1c2231, #161a25); border: 1px solid var(--line); border-radius: 17px; padding: 18px; box-shadow: var(--shadow); }
+    .card p, .muted { color: var(--muted); }
+    .card .micro { color: #7f8ba4; font-size: 12px; margin-top: 10px; }
+    .band { margin-top: 22px; }
+    .band-title { color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 10px; }
+    .node-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 11px; position: relative; }
+    .node {
+      position: relative; text-align: left; min-height: 104px; border: 1px solid var(--line); border-radius: 15px;
+      padding: 14px; background: var(--panel); cursor: pointer; transition: transform .2s, border-color .2s, background .2s;
+    }
+    .node:hover { transform: translateY(-3px); border-color: #6275a1; }
+    .node.selected { border-color: var(--accent); background: #252b40; box-shadow: 0 0 0 2px #93a9ff20; }
+    .node.current { border-color: var(--teal); background: #15302e; box-shadow: 0 0 0 2px #62dfc025; }
+    .node strong { display: block; font-size: 14px; line-height: 1.25; }
+    .node small { display: block; color: var(--muted); margin-top: 7px; font-size: 12px; }
+    .node .icon { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; margin-bottom: 9px; font-size: 14px; background: #93a9ff19; color: var(--accent); }
+    .node.ai .icon { color: var(--pink); background: #fa8fb219; }
+    .node.storage .icon { color: var(--orange); background: #ffbb7518; }
+    .node.voice .icon { color: var(--teal); background: #62dfc018; }
+    .arrow-row { display: flex; align-items: center; justify-content: center; color: #76839e; height: 32px; gap: 9px; }
+    .arrow-row span { font-size: 12px; }
+    .arrow-row b { color: var(--accent); font-size: 18px; }
+    .explain { display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: start; margin-top: 16px; background: #1a2030; border: 1px solid #39445c; border-radius: 15px; padding: 18px 20px; min-height: 104px; }
+    .explain p { color: var(--muted); max-width: 1000px; }
+    .explain .code-ref { color: var(--teal); font-size: 12px; text-align: right; max-width: 270px; overflow-wrap: anywhere; }
+    .flow-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .control { border-color: var(--line); background: var(--panel); color: var(--text); }
+    .control.primary { background: var(--accent); color: #10131d; font-weight: 750; }
+    .control:disabled { opacity: .4; cursor: not-allowed; }
+    .step-status { color: var(--muted); min-width: 120px; text-align: center; font-size: 13px; }
+    .flow-canvas { padding: 20px; border: 1px solid var(--line); border-radius: 18px; background-color: #151a27; background-image: radial-gradient(#ffffff0b 1px, transparent 1px); background-size: 19px 19px; }
+    .flow-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 13px; }
+    .flow-grid .node { min-height: 118px; }
+    .callout { border-left: 3px solid var(--orange); background: #ffbb750d; border-radius: 0 12px 12px 0; padding: 14px 16px; color: var(--muted); }
+    .callout strong { color: var(--orange); }
+    .pathline { display: flex; justify-content: center; margin: 2px 0; color: var(--accent); }
+    .two-col { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(270px, .8fr); gap: 16px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 11px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--teal); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+    td { color: var(--muted); }
+    td:first-child { color: var(--text); font-weight: 650; }
+    code { color: #bdcaff; background: #93a9ff13; padding: 2px 5px; border-radius: 5px; font-size: .9em; }
+    .search { width: min(340px, 100%); border-color: var(--line); color: var(--text); background: var(--panel); outline: none; }
+    .search:focus { border-color: var(--accent); }
+    .glossary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .term { background: var(--panel); border: 1px solid var(--line); border-radius: 13px; padding: 14px; }
+    .term strong { color: var(--teal); }
+    .term p { color: var(--muted); margin-top: 4px; }
+    .badge { display: inline-block; font-size: 11px; border-radius: 999px; padding: 3px 8px; margin-left: 5px; vertical-align: 1px; }
+    .badge.built { background: #62dfc018; color: var(--teal); }
+    .badge.absent { background: #ffbb7518; color: var(--orange); }
+    .model-card { border-top: 3px solid var(--accent); }
+    .model-card.voice { border-top-color: var(--teal); }
+    .model-card.data { border-top-color: var(--orange); }
+    .model-card strong { display: block; margin-bottom: 7px; }
+    .footer { margin-top: 38px; color: #77839b; font-size: 12px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+    .toast { position: fixed; bottom: 20px; right: 20px; background: var(--teal); color: #10131d; font-weight: 700; padding: 10px 14px; border-radius: 11px; box-shadow: var(--shadow); opacity: 0; transform: translateY(8px); transition: .2s; pointer-events: none; }
+    .toast.show { opacity: 1; transform: none; }
+    @media (max-width: 900px) { .grid.four { grid-template-columns: repeat(2, 1fr); } .flow-grid { grid-template-columns: repeat(2, 1fr); } .two-col { grid-template-columns: 1fr; } }
+    @media (max-width: 650px) { .hero { display: block; } .tag { display: inline-block; margin-top: 14px; } .grid.two, .grid.three, .grid.four, .glossary { grid-template-columns: 1fr; } .section-head { align-items: flex-start; flex-direction: column; } .flow-grid { grid-template-columns: 1fr; } .explain { grid-template-columns: 1fr; } .explain .code-ref { text-align: left; } .nav { position: static; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="hero">
+      <div>
+        <div class="eyebrow">Rizzume · Interactive field guide</div>
+        <h1>From microphone<br>to interview feedback.</h1>
+        <p class="subtitle">Explore how the implemented system is put together, follow requests one step at a time, and connect each voice AI concept to the code that uses it.</p>
+      </div>
+      <div class="tag">Implemented design · turn-based voice</div>
+    </header>
+
+    <nav class="nav" aria-label="Guide sections">
+      <button class="active" data-view="overview">System map</button>
+      <button data-view="start">Start an interview</button>
+      <button data-view="voice">Voice answer loop</button>
+      <button data-view="internals">Service internals</button>
+      <button data-view="data">Data &amp; state</button>
+      <button data-view="concepts">Voice concepts</button>
+      <button data-view="interview">Interview talking points</button>
+    </nav>
+
+    <main>
+      <section class="view active" id="overview">
+        <div class="section-head"><div><h2>System map</h2><p>Click any component to see its job, data boundary, and implementation location. The gateway is the browser’s only backend entry point.</p></div></div>
+        <div class="band-title">People and edge</div>
+        <div class="node-grid" id="overview-nodes"></div>
+        <div class="arrow-row"><span>browser HTTP calls</span><b>↓</b><span>JWT checked at edge · request forwarded</span></div>
+        <div class="band-title">Application services</div>
+        <div class="node-grid" id="service-nodes"></div>
+        <div class="arrow-row"><span>private service calls / queued jobs</span><b>↓</b><span>durable state, cache, files, model APIs</span></div>
+        <div class="band-title">Data and model providers</div>
+        <div class="node-grid" id="infra-nodes"></div>
+        <div class="explain" id="overview-explain" aria-live="polite"></div>
+        <div class="grid three band">
+          <article class="card"><h3>What the system is</h3><p>A resume-aware interview practice app. Spoken answers become editable text before the interview engine evaluates them.</p></article>
+          <article class="card"><h3>Voice architecture</h3><p>A cascaded pipeline: speech-to-text → text reasoning → text-to-speech. Audio input is one upload per answer.</p></article>
+          <article class="card"><h3>Important scope boundary</h3><p>Not a streaming voice agent. There is no WebRTC/WebSocket media session, VAD, partial transcript stream, or barge-in loop.</p></article>
+        </div>
+      </section>
+
+      <section class="view" id="start">
+        <div class="section-head"><div><h2>Journey 1 · Resume to opening question</h2><p>Step through the real request path. Use Play to animate the active component or click any step to inspect it.</p></div><div class="flow-controls"><button class="control" data-action="prev">← Previous</button><button class="control primary" data-action="play">▶ Play</button><button class="control" data-action="next">Next →</button><span class="step-status"></span></div></div>
+        <div class="flow-canvas"><div class="flow-grid" id="start-flow"></div></div>
+        <div class="explain" id="start-explain" aria-live="polite"></div>
+        <div class="callout band"><strong>Latency to remember:</strong> the create request waits on PDF extraction, Blob upload, the planning model call, and persistence/cross-service calls. It is synchronous in this implementation.</div>
+      </section>
+
+      <section class="view" id="voice">
+        <div class="section-head"><div><h2>Journey 2 · Spoken answer to next turn</h2><p>Follow the asynchronous transcription path, candidate review checkpoint, interview decision, and generated speech response.</p></div><div class="flow-controls"><button class="control" data-action="prev">← Previous</button><button class="control primary" data-action="play">▶ Play</button><button class="control" data-action="next">Next →</button><span class="step-status"></span></div></div>
+        <div class="flow-canvas"><div class="flow-grid" id="voice-flow"></div></div>
+        <div class="explain" id="voice-explain" aria-live="polite"></div>
+        <div class="grid two band">
+          <article class="card"><h3>Why audio bytes go to Blob</h3><p>The queue carries a small blob name rather than large audio bytes. The worker downloads the file when it processes the job.</p></article>
+          <article class="card"><h3>Why there are two response styles</h3><p>STT is a background task with job status polling. Short question TTS returns MP3 bytes inline so playback can begin as the next turn starts.</p></article>
+        </div>
+      </section>
+
+      <section class="view" id="internals">
+        <div class="section-head"><div><h2>Service internals</h2><p>Each service is independently packaged. Interview reasoning is an internal module of interview-service; conversation history is behind its own HTTP and database boundary.</p></div></div>
+        <div class="grid three">
+          <article class="card model-card"><strong>API gateway</strong><p>FastAPI route proxy → JWT middleware → shared async HTTP clients. Copies method, query, headers and body; injects <code>X-User-Id</code>.</p><p class="micro">services/api-gateway/app/{middleware,api,core,clients}</p></article>
+          <article class="card model-card"><strong>Auth service</strong><p>Route → auth service → user repository → auth_db. bcrypt hashes passwords; signed JWTs carry subject, type and expiry.</p><p class="micro">services/auth-service/app/{api,services,repositories,utils}</p></article>
+          <article class="card model-card"><strong>Interview service</strong><p>Route and ownership checks → orchestration → repositories, internal engine modules, Blob client, conversation HTTP client.</p><p class="micro">services/interview-service/app/{api,services,engine,clients}</p></article>
+          <article class="card model-card voice"><strong>Audio API + worker</strong><p>API stores media and creates jobs; independent Celery worker fetches audio and calls STT. Speech endpoint calls TTS inline.</p><p class="micro">services/audio-service/app/{api,worker,providers,storage}</p></article>
+          <article class="card model-card data"><strong>Conversation service</strong><p>Append commits a numbered turn to Postgres and invalidates the Redis list cache. Reads use cache first, DB otherwise.</p><p class="micro">services/conversation-service/app/{api,services,repositories}</p></article>
+          <article class="card model-card"><strong>Report service <span class="badge absent">scaffold</span></strong><p>Not included in local Compose or the interview completion path. Current worker task is a ping; interview-service generates feedback itself.</p><p class="micro">services/report-service/app/worker/tasks.py</p></article>
+        </div>
+        <div class="band card">
+          <h3>Interview engine: three calls at different moments</h3>
+          <div class="grid three band">
+            <article><strong>1. Planner</strong><p class="muted">At creation: resume + role → bounded question count, greeting, opening question.</p></article>
+            <article><strong>2. Next-step decision</strong><p class="muted">After each answer: transcript + current state → ask/end, remark, question, next difficulty.</p></article>
+            <article><strong>3. Feedback generator</strong><p class="muted">At completion: full text transcript → score, strengths, improvement areas, summary.</p></article>
+          </div>
+          <p class="micro">All use gpt-5.4-mini with Pydantic structured output. Follow-up selection and difficulty adjustment are intentionally one model call.</p>
+        </div>
+      </section>
+
+      <section class="view" id="data">
+        <div class="section-head"><div><h2>Data ownership and state</h2><p>Each domain service owns its database. The relationship IDs are logical references because the records live in separate databases.</p></div></div>
+        <div class="grid three">
+          <article class="card"><div class="eyebrow">auth_db</div><h3>users</h3><p><code>id</code> UUID · <code>email</code> unique · <code>hashed_password</code> · <code>created_at</code></p><p class="micro">Owner: auth-service</p></article>
+          <article class="card"><div class="eyebrow">interview_db</div><h3>interviews</h3><p><code>id</code> · <code>user_id</code> · role/status/difficulty · question counts · resume text/blob ref · feedback JSON · timestamps</p><p class="micro">Owner: interview-service</p></article>
+          <article class="card"><div class="eyebrow">conversation_db</div><h3>conversation_turns</h3><p><code>interview_id</code> · unique turn number per interview · question/answer role · text · timestamp</p><p class="micro">Owner: conversation-service</p></article>
+        </div>
+        <div class="grid three band">
+          <article class="card"><h3>Redis · transcript cache</h3><p>Key: <code>session:{id}:turns</code>. JSON list, two-hour TTL. Cache is invalidated after appends; Postgres remains the source of truth.</p></article>
+          <article class="card"><h3>Redis · Celery broker/result</h3><p>Audio queue is named <code>audio_tasks</code>. Job argument is the blob name; task status and transcript are read by job ID.</p></article>
+          <article class="card"><h3>Azure Blob</h3><p>Private object storage holds original resumes and uploaded audio. Services access objects by name. No cleanup lifecycle is shown in this code.</p></article>
+        </div>
+        <div class="grid two band">
+          <article class="card"><h3>Interview state</h3><p><span class="badge built">in_progress</span> creation saves opening question → each answer adds transcript and either advances count/difficulty or completes → <span class="badge built">completed</span> saves feedback.</p></article>
+          <article class="card"><h3>Browser turn state</h3><p><code>idle → recording → transcribing → reviewing → submitting → idle</code>. Completion returns feedback. Error returns to review or idle for retry.</p></article>
+        </div>
+        <div class="callout band"><strong>Cross-service consistency:</strong> each transcript append commits independently. There is no shared SQL transaction or outbox spanning interview_db, conversation_db, Blob Storage, Redis, and OpenAI.</div>
+      </section>
+
+      <section class="view" id="concepts">
+        <div class="section-head"><div><h2>Voice AI concepts</h2><p>Filter the glossary. “Built” means represented in this code path; “not built” marks common real-time voice features this app does not implement.</p></div><input class="search" id="term-search" type="search" placeholder="Filter concepts…" aria-label="Filter concepts"></div>
+        <div class="grid four band">
+          <article class="card model-card voice"><strong>STT / ASR</strong><p>Convert a recording into text. Here: gpt-4o-mini-transcribe in an audio worker.</p></article>
+          <article class="card model-card"><strong>Text reasoning</strong><p>Use resume, role and transcript to select an interview action. Here: gpt-5.4-mini Responses API.</p></article>
+          <article class="card model-card voice"><strong>TTS</strong><p>Convert interviewer text into speech. Here: gpt-4o-mini-tts, alloy voice, MP3.</p></article>
+          <article class="card model-card data"><strong>Human correction</strong><p>Candidate can edit recognized words before the engine sees the answer.</p></article>
+        </div>
+        <div class="glossary band" id="glossary"></div>
+      </section>
+
+      <section class="view" id="interview">
+        <div class="section-head"><div><h2>Interview talking points</h2><p>Short, accurate answers you can use to explain the design, tradeoffs, and the next architecture step.</p></div></div>
+        <div class="grid two">
+          <article class="card"><h3>“Walk me through a spoken answer.”</h3><p>“The browser records one full answer with MediaRecorder, uploads it through the gateway, and gets a Celery job ID. The audio service stores bytes in Blob and queues only the blob name. A worker calls STT and stores the transcript in Redis as the task result. The UI polls, lets the candidate edit the text, and submits it to interview-service. The interview engine selects the next question or completes with feedback; TTS returns the next prompt as MP3.”</p></article>
+          <article class="card"><h3>“Is it a real-time voice agent?”</h3><p>“No. It is a turn-based, cascaded pipeline. Recording ends on a user action; STT runs after upload; the response is generated after transcript submission. There is no continuous media transport or partial audio/transcript streaming.”</p></article>
+          <article class="card"><h3>“Why queue transcription?”</h3><p>“STT can take longer than a normal request. A job ID frees the API request quickly and lets a worker scale separately. The tradeoff is a broker, worker, polling delay, task-result lifecycle and uploaded-file cleanup.”</p></article>
+          <article class="card"><h3>“Why separate services and databases?”</h3><p>“Auth, interview orchestration, conversation history and audio processing have clear ownership and separate dependencies/workloads. Services exchange data over HTTP, while each database is service-owned. That limits direct coupling but means cross-service updates are not one ACID transaction.”</p></article>
+          <article class="card"><h3>“How does difficulty adapt?”</h3><p>“One structured LLM decision sees the transcript, current difficulty, question count, role and resume. It chooses the next action, question and next difficulty together so the question and difficulty decision stay aligned. The service also enforces the question limit itself.”</p></article>
+          <article class="card"><h3>“What would you add for real time?”</h3><p>“Bidirectional streaming, VAD/endpointing, partial ASR events, chunked TTS, cancellation/barge-in, reconnect and ordering semantics, backpressure, plus stage-level latency and quality telemetry. That is a different session architecture, not a model-name swap.”</p></article>
+        </div>
+        <div class="band card"><h3>Know the implemented limits</h3><div class="table-wrap"><table><thead><tr><th>Area</th><th>Implemented</th><th>Not present in this flow</th></tr></thead><tbody>
+          <tr><td>Speech input</td><td>Browser recording; Blob upload; async transcription; editable transcript</td><td>Live ASR, VAD, speaker diarization</td></tr>
+          <tr><td>Speech output</td><td>Full MP3 response; browser playback; speaking indicator</td><td>Streaming TTS, lip-sync avatar, barge-in session logic</td></tr>
+          <tr><td>Interview quality</td><td>Resume-informed text questions, difficulty adaptation, transcript feedback</td><td>Emotion/prosody scoring, pronunciation scoring, facial analysis</td></tr>
+          <tr><td>Reporting</td><td>Feedback JSON generated by interview-service</td><td>Active report-service PDF/report pipeline</td></tr>
+        </tbody></table></div></div>
+      </section>
+    </main>
+    <footer class="footer"><span>Rizzume architecture guide · built from repository implementation</span><span><a href="README.md">Back to the Markdown guide index</a></span></footer>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+  <script>
+    const components = {
+      candidate: { title: "Candidate", icon: "◎", cls: "", sub: "browser user", detail: "Chooses a resume and role, listens to the spoken question, records an answer, reviews the transcript, and submits it. The user controls recording start/stop.", ref: "User journey" },
+      frontend: { title: "Next.js frontend", icon: "▧", cls: "", sub: "UI + audio capture/playback", detail: "Calls only the API gateway. Stores JWTs in localStorage, records audio with MediaRecorder, polls transcription, allows transcript edits, plays MP3 and shows a local camera preview.", ref: "frontend/src/features · frontend/src/lib/api-client.ts" },
+      gateway: { title: "API gateway", icon: "⇄", cls: "", sub: "JWT · CORS · reverse proxy", detail: "Public backend edge. Validates JWT signature/expiry, extracts sub, injects X-User-Id and forwards the HTTP request. Current middleware does not verify the JWT type is access.", ref: "services/api-gateway/app" },
+      auth: { title: "Auth service", icon: "⌑", cls: "", sub: "signup · login · refresh", detail: "Owns credentials and users table. Passwords are bcrypt hashes. Issues access and refresh JWTs; refresh is stateless and has no revocation blocklist.", ref: "services/auth-service/app" },
+      interview: { title: "Interview service", icon: "✦", cls: "ai", sub: "session + LLM orchestration", detail: "Owns interview lifecycle, resume text/reference, question count, difficulty and feedback. Calls the internal engine, Azure Blob and conversation-service over HTTP.", ref: "services/interview-service/app" },
+      conversation: { title: "Conversation service", icon: "☷", cls: "", sub: "durable ordered transcript", detail: "Stores question/answer turns in its own Postgres database. Redis caches the ordered list with a two-hour TTL; writes invalidate it.", ref: "services/conversation-service/app" },
+      audio: { title: "Audio service", icon: "♫", cls: "voice", sub: "STT jobs + inline TTS", detail: "Uploads answer audio to Blob and queues a transcription job. The speech route calls TTS synchronously and returns audio/mpeg bytes.", ref: "services/audio-service/app/api · providers" },
+      worker: { title: "Audio Celery worker", icon: "⚙", cls: "voice", sub: "async speech recognition", detail: "Consumes the audio_tasks queue, downloads a blob by name, calls gpt-4o-mini-transcribe and records the job result for polling.", ref: "services/audio-service/app/worker" },
+      report: { title: "Report service", icon: "▤", cls: "storage", sub: "scaffold only", detail: "The current service has health and a ping task, but no report generation flow. It is omitted from local Compose. Interview-service itself generates the feedback JSON.", ref: "services/report-service/app" },
+      postgres: { title: "Service-owned Postgres DBs", icon: "▤", cls: "storage", sub: "auth · interview · conversation", detail: "Each domain service writes only to its own database. IDs form logical links; there are no cross-database foreign keys or direct SQL access by another service.", ref: "services/*/app/models · db · migrations" },
+      redis: { title: "Redis / Upstash", icon: "ϟ", cls: "storage", sub: "cache + Celery broker/results", detail: "Conversation-service uses a transcript cache. Audio Celery uses Redis for queue state and results. Audio uses a dedicated audio_tasks queue; task payload is a blob name, not audio bytes.", ref: "conversation-service/app/repositories/session_cache.py · audio-service/app/worker/celery_app.py" },
+      blob: { title: "Azure Blob Storage", icon: "▱", cls: "storage", sub: "private resume + audio files", detail: "Interview-service stores original PDFs; audio-service stores recorded answer files. The APIs and worker access objects by generated blob name through private containers.", ref: "interview-service/app/storage · audio-service/app/storage" },
+      openai: { title: "OpenAI APIs", icon: "✧", cls: "ai", sub: "reasoning · STT · TTS", detail: "Interview-service uses gpt-5.4-mini with structured Responses output. Audio worker uses gpt-4o-mini-transcribe; audio API uses gpt-4o-mini-tts / alloy.", ref: "interview-service/app/engine · audio-service/app/providers" }
+    };
+    const overviewGroups = {
+      "overview-nodes": ["candidate", "frontend", "gateway"],
+      "service-nodes": ["auth", "interview", "conversation", "audio", "worker", "report"],
+      "infra-nodes": ["postgres", "redis", "blob", "openai"]
+    };
+    function nodeHTML(key, extra = "") {
+      const x = components[key];
+      return `<button class="node ${x.cls} ${extra}" data-component="${key}"><span class="icon">${x.icon}</span><strong>${x.title}</strong><small>${x.sub}</small></button>`;
+    }
+    function showDetails(container, key, current = false) {
+      const x = components[key];
+      container.innerHTML = `<div><h3>${x.title}</h3><p>${x.detail}</p></div><div class="code-ref">${x.ref}</div>`;
+      container.dataset.selected = key;
+      container.closest(".view").querySelectorAll(".node[data-component]").forEach(n => {
+        n.classList.toggle("selected", n.dataset.component === key && !current);
+      });
+    }
+    Object.entries(overviewGroups).forEach(([id, list]) => document.getElementById(id).innerHTML = list.map(k => nodeHTML(k)).join(""));
+
+    const flows = {
+      start: [
+        ["frontend", "Candidate selects PDF + role; frontend builds multipart form data.", "features/interview/api.ts · InterviewSetupForm"],
+        ["gateway", "POST /api/v1/interviews/ carries Bearer JWT. Gateway verifies signature/expiry and adds X-User-Id.", "api-gateway/app/middleware/auth.py · core/proxy.py"],
+        ["interview", "Route validates PDF MIME and non-empty bytes, then pypdf extracts text. Image-only scans have no extractable text.", "interview-service/app/api/interviews.py · utils/pdf_extractor.py"],
+        ["blob", "Original PDF is uploaded to the private resume container under a generated UUID blob name.", "interview-service/app/storage/blob_client.py"],
+        ["openai", "Planner sends role + resume text and parses structured output: planned question count, opening remark and question.", "interview-service/app/engine/interview_planner.py · gpt-5.4-mini"],
+        ["postgres", "Interview row stores role, user ID, resume text and blob reference, planned count, state and timestamps.", "interview_db · Interview model/repository"],
+        ["conversation", "Opening question is appended as transcript turn 1. The spoken greeting is intentionally not stored.", "interview-service conversation_client → conversation-service"],
+        ["audio", "Frontend posts remark + question to /api/v1/audio/speech. Audio service returns MP3 bytes synchronously.", "audio-service/app/api/speech.py · gpt-4o-mini-tts"],
+        ["frontend", "Browser plays the MP3 and toggles the avatar’s speaking indicator from audio playback events.", "features/interview/hooks/useSpeech.ts"]
+      ],
+      voice: [
+        ["frontend", "User starts recording. getUserMedia supplies microphone stream; MediaRecorder accumulates chunks until Stop.", "features/interview/hooks/useAudioRecorder.ts"],
+        ["gateway", "Multipart audio goes to POST /api/v1/audio/transcriptions with the access JWT.", "features/audio/api.ts · api-gateway audio endpoint"],
+        ["audio", "API reads file, rejects empty bytes, writes an Azure Blob and creates Celery task with only blob name.", "audio-service/app/api/transcriptions.py"],
+        ["redis", "Audio Celery queue is audio_tasks. Job status/result lives in configured Redis broker/result backend.", "audio-service/app/worker/celery_app.py"],
+        ["worker", "Worker downloads Blob and sends the file bytes to OpenAI transcription.", "audio-service/app/worker/tasks.py · openai_stt.py"],
+        ["frontend", "Frontend polls around every 1.5s (up to 60s); on completion it displays editable text. User may re-record.", "features/audio/api.ts · pollTranscription"],
+        ["interview", "Edited text answer is submitted. Interview service checks ownership/status, stores answer and fetches full transcript.", "interview-service/app/services/interview_service.py"],
+        ["openai", "Structured decision picks ask/end, remark, question and next difficulty. If ending, feedback is generated.", "interview_engine.py · feedback_generator.py"],
+        ["conversation", "If continuing, only the clean question text is saved as the next turn; the remark is speech/display only.", "conversation-service · conversation_db"],
+        ["audio", "Next remark + question are sent to TTS. It returns audio/mpeg inline; browser plays it for the next turn.", "audio-service/app/providers/openai_tts.py"]
+      ]
+    };
+    const flowState = { start: 0, voice: 0, timers: {} };
+    function renderFlow(name) {
+      const flow = flows[name], host = document.getElementById(name + "-flow"), panel = document.getElementById(name + "-explain");
+      const step = flowState[name];
+      host.innerHTML = flow.map(([key], i) => nodeHTML(key, i === step ? "current" : "")).join("");
+      const [key, detail, ref] = flow[step];
+      panel.innerHTML = `<div><h3>Step ${step + 1} · ${components[key].title}</h3><p>${detail}</p></div><div class="code-ref">${ref}</div>`;
+      const view = document.getElementById(name);
+      view.querySelector(".step-status").textContent = `Step ${step + 1} of ${flow.length}`;
+      view.querySelector('[data-action="prev"]').disabled = step === 0;
+      view.querySelector('[data-action="next"]').disabled = step === flow.length - 1;
+      view.querySelector('[data-action="play"]').textContent = flowState.timers[name] ? "Ⅱ Pause" : (step === flow.length - 1 ? "↺ Replay" : "▶ Play");
+    }
+    function advance(name, delta) { flowState[name] = Math.max(0, Math.min(flows[name].length - 1, flowState[name] + delta)); renderFlow(name); }
+    document.querySelectorAll(".nav button").forEach(btn => btn.addEventListener("click", () => {
+      document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("active", b === btn));
+      document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === btn.dataset.view));
+      history.replaceState(null, "", "#" + btn.dataset.view);
+    }));
+    document.addEventListener("click", event => {
+      const node = event.target.closest("[data-component]");
+      if (node) {
+        const view = node.closest(".view");
+        const panel = view.querySelector(".explain") || document.getElementById("overview-explain");
+        showDetails(panel, node.dataset.component);
+      }
+      const action = event.target.closest("[data-action]");
+      if (!action) return;
+      const name = action.closest(".view").id;
+      if (action.dataset.action === "next") advance(name, 1);
+      if (action.dataset.action === "prev") advance(name, -1);
+      if (action.dataset.action === "play") {
+        if (flowState.timers[name]) { clearInterval(flowState.timers[name]); delete flowState.timers[name]; }
+        else {
+          if (flowState[name] === flows[name].length - 1) flowState[name] = -1;
+          flowState.timers[name] = setInterval(() => {
+            if (flowState[name] >= flows[name].length - 1) { clearInterval(flowState.timers[name]); delete flowState.timers[name]; renderFlow(name); return; }
+            advance(name, 1);
+          }, 1500);
+        }
+        renderFlow(name);
+      }
+    });
+    const terms = [
+      ["STT / ASR", "Speech-to-text / automatic speech recognition: map a recorded voice signal to words. Implemented by the audio worker."],
+      ["TTS", "Text-to-speech: generate audio from text. Implemented synchronously for short interviewer prompts."],
+      ["Cascaded pipeline", "Separate ASR, language reasoning and TTS stages. This app sends transcript text to the interview model."],
+      ["Turn-based", "One full speaker turn completes before the other responds. The user clicks Stop; the app then transcribes."],
+      ["Batch upload", "Send a complete audio file after recording ends, not continuous audio frames. Used for each answer."],
+      ["Job queue / broker", "A queue holds work for background workers. Redis delivers the Celery transcription job."],
+      ["Result backend", "Stores job state and result so the client can ask whether processing completed. Also Redis here."],
+      ["Object storage", "Stores large binary files independently from relational tables. Azure Blob holds resume and answer audio."],
+      ["Polling", "The frontend repeats a status request until the job finishes or a deadline expires."],
+      ["Structured output", "Parse model output into a known schema, rather than relying on free-form text. Pydantic models define the contracts."],
+      ["Endpointing", "Deciding automatically that the speaker finished. Not implemented; the candidate presses Stop."],
+      ["VAD", "Voice activity detection separates speech from silence/noise. Not implemented in this project."],
+      ["Streaming ASR", "Partial words arrive while the person speaks. Not implemented; transcription begins after file upload."],
+      ["Streaming TTS", "Audio chunks arrive before the entire utterance is synthesized. Not implemented; API returns a complete MP3."],
+      ["Barge-in", "User interrupts generated speech and the system cancels playback/work. No integrated conversational barge-in."],
+      ["Diarization", "Assign speech segments to speakers. Not implemented; one candidate answer is recorded per turn."],
+      ["Prosody / emotion", "Infer delivery or affect from sound. Feedback currently sees transcript text, not acoustic features."],
+      ["Realtime speech model", "Continuous audio-in/audio-out session model. Not used; the implementation uses separate STT and TTS calls."],
+      ["Human-in-the-loop", "A person can review/correct machine output. Candidate can edit the transcript before interview reasoning."],
+      ["RAG / embeddings", "Retrieve relevant indexed document chunks at inference time. Not used; resume text is extracted and passed directly."],
+      ["Cache", "A faster, disposable copy of data. Transcript cache expires/invalidate; Postgres is authoritative."],
+      ["Idempotency", "Repeated request has one logical effect. No idempotency key is implemented for answer or interview creation."],
+      ["Outbox / saga", "Patterns for recovering multi-service writes without a cross-service DB transaction. Not implemented here."]
+    ];
+    const glossary = document.getElementById("glossary");
+    function renderTerms(q = "") {
+      glossary.innerHTML = terms.filter(t => t.join(" ").toLowerCase().includes(q.toLowerCase())).map(([title, body]) => `<article class="term"><strong>${title}</strong><p>${body}</p></article>`).join("") || `<p class="muted">No concepts match that search.</p>`;
+    }
+    document.getElementById("term-search").addEventListener("input", e => renderTerms(e.target.value));
+    document.querySelectorAll(".view#start, .view#voice").forEach(v => renderFlow(v.id));
+    document.getElementById("overview-explain").innerHTML = `<div><h3>Choose a component</h3><p>Click one of the boxes above to inspect its responsibility, boundaries and source location.</p></div><div class="code-ref">No network libraries or build step required</div>`;
+    renderTerms();
+    const initial = location.hash.slice(1);
+    if (initial && document.querySelector(`.nav button[data-view="${initial}"]`)) document.querySelector(`.nav button[data-view="${initial}"]`).click();
+  </script>
+</body>
+</html>
